@@ -13,12 +13,15 @@ import java.util.*
  * Created by eka on 2017. 9. 26..
  */
 class BluetoothService() : Service() {
+
     private var mBluetoothAdapter: BluetoothAdapter? = null
     private var mBluetoothGatt: BluetoothGatt? = null
     private var mHandler = Handler()
     private var string = ""
     private var address = ""
     private var mCharacteristic: BluetoothGattCharacteristic? = null
+    private var get: String? = null
+
     override fun onBind(p0: Intent?): IBinder? {
         return null
     }
@@ -60,10 +63,20 @@ class BluetoothService() : Service() {
         }
     }
 
-    fun send() {
-        val string = "String"
+    fun send(string: String): Array<String>? {
         mCharacteristic?.setValue(string)
         mBluetoothGatt?.writeCharacteristic(mCharacteristic)
+        return dataProcessing(recieve())
+    }
+
+    fun recieve(): String? {
+        return get
+    }
+
+    fun dataProcessing(string: String?): Array<String>? {
+        var str = string?.split(",")
+        var returnstr = str?.toTypedArray()
+        return returnstr
     }
 
     private val mBluetoothGattCallback = object : BluetoothGattCallback() {
@@ -80,6 +93,7 @@ class BluetoothService() : Service() {
             super.onCharacteristicChanged(gatt, characteristic)
             val data = characteristic!!.value
             string = String(data)
+            get = string
         }
 
         //블루투스 발견 안될떄

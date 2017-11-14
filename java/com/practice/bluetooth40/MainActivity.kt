@@ -1,5 +1,6 @@
 package com.practice.bluetooth40
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.bluetooth.*
 import android.content.Context
@@ -10,6 +11,9 @@ import android.os.Handler
 import android.util.Log
 import java.util.*
 import android.bluetooth.BluetoothGattCharacteristic
+import android.content.pm.PackageManager
+import android.os.Build
+import android.support.v4.content.ContextCompat
 
 
 class MainActivity : AppCompatActivity() {
@@ -20,17 +24,32 @@ class MainActivity : AppCompatActivity() {
     var mBluetoothGattServices: List<BluetoothGattService>? = null
     var isFrontData = true
     var string = ""
+    @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         getAdapter()
 
+        permisionCheck()
         if (!mBluetoothAdapter!!.isEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         }
         scanLeDevice(true)
+    }
+
+    fun permisionCheck() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Log.d("puze", "PERMISSION")
+                    requestPermissions(arrayOf<String>(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                            200)
+                    Log.d("puze", "LOCATION")
+                }
+            }
+        }
     }
 
     private fun getAdapter() {
@@ -63,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("MissingPermission")
     private val mLeScanCallback = BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
         Log.i("deviceInfo address", device.address)
         Log.i("deviceInfo name", "" + device.name)
@@ -75,7 +95,6 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this@MainActivity, BluetoothService::class.java)
                 intent.putExtra("address", device.address)
                 startService(intent)
-
             }
         }
     }
